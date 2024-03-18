@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Persona</title>
+</head>
+<body>
+<form method="POST">
+    <h1>Eliminar personas</h1>
+    <table>
+        {{formaPersona}}
+    </table>
+    <button type="submit">Enviar</button>
+    {% csrf_token %}
+</form>
+</body>
+</html>

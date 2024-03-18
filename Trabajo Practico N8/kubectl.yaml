@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  selector:
+    app: web-app
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+        - name: web-container
+          image: julianzanetti/sap-web:1.0
+          ports:
+            - containerPort: 8000
+      volumes:
+        - name: app-volume
+          hostPath:
+            path: /app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-service
+spec:
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: db-app
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db-app
+  template:
+    metadata:
+      labels:
+        app: db-app
+    spec:
+      containers:
+        - name: db-container
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: sap_db
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: admin
+

@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "exportado.fullname" . }}-web-service
+  labels:
+  {{- include "exportado.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.webService.type }}
+  selector:
+    app: web-app
+  {{- include "exportado.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.webService.ports | toYaml | nindent 2 -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "exportado.fullname" . }}-web-deploy
+  labels:
+  {{- include "exportado.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.webDeploy.replicas }}
+  selector:
+    matchLabels:
+      app: web-app
+    {{- include "exportado.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: web-app
+      {{- include "exportado.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.webDeploy.webContainer.image.repository }}:{{ .Values.webDeploy.webContainer.image.tag
+          | default .Chart.AppVersion }}
+        name: web-container
+        ports:
+        - containerPort: 8000
+        resources: {}
+      volumes:
+      - hostPath:
+          path: /app
+        name: app-volume
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "exportado.fullname" . }}-db-service
+  labels:
+  {{- include "exportado.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.dbService.type }}
+  selector:
+    app: db-app
+  {{- include "exportado.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.dbService.ports | toYaml | nindent 2 -}}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "exportado.fullname" . }}-db-deployment
+  labels:
+  {{- include "exportado.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.dbDeployment.replicas }}
+  selector:
+    matchLabels:
+      app: db-app
+    {{- include "exportado.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: db-app
+      {{- include "exportado.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: {{ quote .Values.dbDeployment.dbContainer.env.postgresDb }}
+        - name: POSTGRES_USER
+          value: {{ quote .Values.dbDeployment.dbContainer.env.postgresUser }}
+        - name: POSTGRES_PASSWORD
+          value: {{ quote .Values.dbDeployment.dbContainer.env.postgresPassword }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.dbDeployment.dbContainer.image.repository }}:{{ .Values.dbDeployment.dbContainer.image.tag
+          | default .Chart.AppVersion }}
+        name: db-container
+        ports:
+        - containerPort: 5432
+        resources: {}

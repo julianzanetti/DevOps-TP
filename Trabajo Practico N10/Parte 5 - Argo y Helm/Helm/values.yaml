@@ -1,0 +1,29 @@
+dbDeployment:
+  dbContainer:
+    env:
+      postgresDb: sap_db
+      postgresPassword: admin
+      postgresUser: postgres
+    image:
+      repository: postgres
+      tag: latest
+  replicas: 1
+dbService:
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  type: ClusterIP
+kubernetesClusterDomain: cluster.local
+webDeploy:
+  replicas: 3
+  webContainer:
+    image:
+      repository: julianzanetti/sap-web
+      tag: "1.0"
+webService:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8000
+  type: ClusterIP

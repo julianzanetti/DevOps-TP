@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/estilos.css' %}">
+</head>
+<body>
+<h1 class="titulo">Sistema de Administración de Personas (SAP)</h1>
+<div>
+    <h2>Numero de Personas en Total: {{nro_personas}}</h2>
+</div>
+<div>
+    <a href="nueva_persona">Agregar persona</a>
+    <a href="nuevo_domicilio">Agregar domicilio</a>
+</div>
+<div>
+    <table>
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Domicilio</th>
+            <th></th>
+            <th></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for persona in personas %}
+        <tr>
+            <td>{{persona.id}}</td>
+            <td>{{persona.nombre}} {{persona.apellido}}</td>
+            <td>{{persona.email}}</td>
+            <td>{{persona.domicilio}}</td>
+            <td><a href="detalle_persona/{{persona.id}}">Ver Persona</a></td>
+            <td><a href="editar_persona/{{persona.id}}">Editar Persona</a></td>
+            <td><a href="eliminar_persona/{{persona.id}}">Eliminar Persona</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+environment {
+    DOCKERHUB_CREDENTIALS = credentials('julianzanetti-dockerhub')
+}
+
+stages {
+    stage('git-clone') {
+        steps {
+            git branch: 'main', url: '<https://github.com/julianzanetti/TP6-DevOps.git>'
+        }
+    }
+
+    stage('Construir y etiquetar la imagen') {
+        steps {
+            script {
+                // Construir la imagen Docker y etiquetarla
+                sh "docker build -t julianzanetti/sap-web-jenkins:1.0 ."
+            }
+        }
+    }
+
+    stage('Ejecutar contenedor de prueba') {
+        steps {
+            script {
+                // Detener y eliminar el contenedor si ya está en ejecución
+                sh "docker stop sap-web-jenkins || true"
+                sh "docker rm sap-web-jenkins || true"
+
+                // Ejecutar el contenedor con la imagen recién construida
+                sh "docker run -d --name sap-web-jenkins -p 8000:8000 sap-web-jenkins:1.0"
+
+            }
+        }
+    }
+
+    stage('Subir imagen a DockerHub') {
+        steps {
+            script {
+                // Utilizar las credenciales seguras para iniciar sesión en Docker Hub
+                withCredentials([usernamePassword(credentialsId: 'julianzanetti-dockerhub', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USR')]) {
+                    sh """
+                    echo \\${DOCKERHUB_CREDENTIALS_PSW} | docker login -u \\${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                    docker push julianzanetti/sap-web-jenkins:1.0
+                    """
+                }
+            }
+        }
+    }
+}
+
+post {
+    always {
+        // Limpiar: Detener y eliminar el contenedor
+        sh "docker stop sap-web-jenkins || true"
+        sh "docker rm sap-web-jenkins || true"
+    }
+}
